@@ -1,0 +1,4 @@
+{
+    "mongoURI": "mongodb+srv://amine:488Gtr@cluster0-yixiy.mongodb.net/test?retryWrites=true&w=majority",
+    "jwtKey": "mySecretKey"
+}
