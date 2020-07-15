@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "engines": {
+    "node": "12.16.1"
+  },
   "scripts": {
     "server": "nodemon app",
     "client": "npm start --prefix client",
