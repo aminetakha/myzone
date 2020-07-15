@@ -42,14 +42,13 @@ router.post(
     }
 
     const { username, email, password, birthdate, gender } = req.body;
-    console.log(username, email, password, birthdate, gender);
 
     let user = await User.findOne({ email });
     if (user) {
       return res.status(401).json({ msg: "User is already exists" });
     }
 
-    console.log(req.file);
+    // console.log(req.file);
 
     user = new User({
       username,
@@ -59,8 +58,6 @@ router.post(
       birthdate,
       gender,
     });
-
-    console.log(user);
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
@@ -121,6 +118,21 @@ router.post(
   }
 );
 
+// change profile info
+router.post("/update/", auth, async (req, res) => {
+  const update = {
+    username: req.body.username,
+    email: req.body.email,
+    birthdate: req.body.birthdate,
+    gender: req.body.gender,
+  };
+  const doc = await User.findOneAndUpdate({ _id: req.user.id }, update, {
+    new: true,
+    useFindAndModify: false,
+  });
+  res.json(doc);
+});
+
 // fetch the current user
 router.get("/me", auth, async (req, res) => {
   const user = await User.findById(req.user.id).select("-password");
@@ -165,15 +177,18 @@ router.post("/request/:id", auth, async (req, res) => {
 router.post("/request/:id/accept", auth, async (req, res) => {
   try {
     let user = await User.findById(req.user.id);
+    let userThatSentRequest = await User.findById(req.params.id);
     let newRequestList;
     if (user.requests.length > 0) {
       newRequestList = user.requests.filter(
         (request) => request != req.params.id
       );
       user.requests = newRequestList;
+      userThatSentRequest.friends.push(req.user.id);
       user.friends.push(req.params.id);
     }
     await user.save();
+    await userThatSentRequest.save();
     res.json(user);
   } catch (err) {
     console.log(err);
@@ -216,7 +231,10 @@ router.post("/friend/:id", auth, async (req, res) => {
   try {
     let user = await User.findById(req.user.id);
     user.friends = user.friends.filter((usr) => usr != req.params.id);
+    let friend = await User.findById(req.params.id);
+    friend.friends = friend.friends.filter((usr) => usr != req.user.id);
     await user.save();
+    await friend.save();
     return res.json({ msg: "User has been deleted" });
   } catch (err) {
     console.log("Error in unfriend user");

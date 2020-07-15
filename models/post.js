@@ -6,6 +6,7 @@ const postSchema = new schema({
     type: schema.Types.ObjectId,
     ref: "user",
   },
+  postType: String,
   postContent: String,
   postLikes: Number,
   comment: [
